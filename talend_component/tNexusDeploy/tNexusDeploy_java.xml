@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<COMPONENT> 
+  <HEADER PLATEFORM="ALL" SERIAL="" VERSION="1.0" STATUS="DEV" COMPATIBILITY="ALL" AUTHOR="Jan Lolling" RELEASE_DATE="20201110" STARTABLE="true" SCHEMA_AUTO_PROPAGATE="false"> 
+    <SIGNATURE/> 
+  </HEADER>  
+  <FAMILIES> 
+    <FAMILY>Management</FAMILY> 
+  </FAMILIES>  
+  <DOCUMENTATION> 
+    <URL/> 
+  </DOCUMENTATION>  
+  <CONNECTORS> 
+    <CONNECTOR CTYPE="FLOW" MIN_INPUT="0" MAX_INPUT="0" MAX_OUTPUT="0"/>  
+    <CONNECTOR CTYPE="ITERATE" MAX_INPUT="1"/>  
+    <CONNECTOR CTYPE="SUBJOB_OK" MAX_INPUT="1"/>  
+    <CONNECTOR CTYPE="SUBJOB_ERROR" MAX_INPUT="1"/>  
+    <CONNECTOR CTYPE="COMPONENT_OK"/>  
+    <CONNECTOR CTYPE="COMPONENT_ERROR"/>  
+    <CONNECTOR CTYPE="RUN_IF"/> 
+  </CONNECTORS>  
+  <PARAMETERS> 
+    <PARAMETER NAME="NEXUS_VERSION" FIELD="CLOSED_LIST" NUM_ROW="1" GROUP="SERVER" REQUIRED="true"> 
+      <ITEMS DEFAULT="NEXUS_2"> 
+        <ITEM NAME="NEXUS_2" VALUE="NEXUS_2"/>  
+        <ITEM NAME="NEXUS_3" VALUE="NEXUS_3"/> 
+      </ITEMS> 
+    </PARAMETER>  
+    <PARAMETER NAME="NEXUS_BASE_URL" FIELD="TEXT" NUM_ROW="10" GROUP="SERVER" REQUIRED="true"> 
+      <DEFAULT>"http://localhost:8081"</DEFAULT> 
+    </PARAMETER>  
+    <PARAMETER NAME="NEXUS_USER" FIELD="TEXT" NUM_ROW="20" GROUP="SERVER" REQUIRED="true"/>  
+    <PARAMETER NAME="NEXUS_PASSWORD" FIELD="PASSWORD" NUM_ROW="20" GROUP="SERVER" REQUIRED="true"/>  
+    <PARAMETER NAME="NEXUS_REPOSITORY" FIELD="TEXT" NUM_ROW="25" GROUP="SERVER" REQUIRED="true"> 
+      <DEFAULT>"releases"</DEFAULT> 
+    </PARAMETER>  
+    <PARAMETER NAME="FILE_TYPE" FIELD="CLOSED_LIST" NUM_ROW="29" GROUP="ARTIFACT" REQUIRED="true"> 
+      <ITEMS DEFAULT="DI_JOB"> 
+        <ITEM NAME="DI_JOB" VALUE="DI_JOB"/>  
+        <ITEM NAME="OSGI" VALUE="OSGI"/> 
+      </ITEMS> 
+    </PARAMETER>  
+    <PARAMETER NAME="ARTIFACT_FILE" FIELD="FILE" NUM_ROW="30" GROUP="ARTIFACT" REQUIRED="true"> 
+      <DEFAULT>"/path/to/my_talendjob_0.1.zip"</DEFAULT> 
+    </PARAMETER>  
+    <PARAMETER NAME="NOTE" FIELD="LABEL" GROUP="ARTIFACT" NUM_ROW="31"> 
+      <DEFAULT>ZIP files will be deployed as batch-jobs, JAR files will be deployed as OSGi feature.</DEFAULT> 
+    </PARAMETER>  
+    <PARAMETER NAME="GROUP_ID" FIELD="TEXT" NUM_ROW="70" GROUP="ARTIFACT" REQUIRED="true"> 
+      <DEFAULT>"com.example"</DEFAULT> 
+    </PARAMETER> 
+  </PARAMETERS>  
+  <ADVANCED_PARAMETERS> 
+    <PARAMETER NAME="RELEASE_LABEL_20201110" FIELD="LABEL" COLOR="0;0;0" NUM_ROW="900">
+      <DEFAULT>Release: 1.0 build at: 20201110</DEFAULT>
+    </PARAMETER>
+  </ADVANCED_PARAMETERS>  
+  <CODEGENERATION> 
+    <IMPORTS> 
+      <IMPORT NAME="nexus" MODULE="nexus-1.0.jar" MVN="mvn:org.talend.libraries/nexus-1.0/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="httpclient" MODULE="httpclient-4.5.6.jar" MVN="mvn:org.talend.libraries/httpclient-4.5.6/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="httpcore" MODULE="httpcore-4.4.10.jar" MVN="mvn:org.talend.libraries/httpcore-4.4.10/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="commons-logging" MODULE="commons-logging-1.2.jar" MVN="mvn:org.talend.libraries/commons-logging-1.2/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="commons-codec" MODULE="commons-codec-1.10.jar" MVN="mvn:org.talend.libraries/commons-codec-1.10/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="httpmime" MODULE="httpmime-4.5.6.jar" MVN="mvn:org.talend.libraries/httpmime-4.5.6/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="httpasyncclient" MODULE="httpasyncclient-4.1.4.jar" MVN="mvn:org.talend.libraries/httpasyncclient-4.1.4/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="httpcore-nio" MODULE="httpcore-nio-4.4.10.jar" MVN="mvn:org.talend.libraries/httpcore-nio-4.4.10/6.0.0-SNAPSHOT" REQUIRED="true"/>
+    </IMPORTS> 
+  </CODEGENERATION>  
+  <RETURNS> 
+    <RETURN AVAILABILITY="AFTER" NAME="ARTIFACT_ID" TYPE="id_String"/>  
+    <RETURN AVAILABILITY="AFTER" NAME="ARTIFACT_ID" TYPE="id_String"/>  
+    <RETURN AVAILABILITY="AFTER" NAME="ARTIFACT_FILE" TYPE="id_String"/>  
+    <RETURN AVAILABILITY="AFTER" NAME="ARTIFACT_SUCESSFULLY_DEPLOYED" TYPE="id_Boolean"/> 
+  </RETURNS>
+</COMPONENT>

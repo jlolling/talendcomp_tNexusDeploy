@@ -1,0 +1,74 @@
+<%@ jet 
+	imports="
+		org.talend.core.model.process.INode  
+		org.talend.core.model.process.ElementParameterParser
+		org.talend.designer.codegen.config.CodeGeneratorArgument
+	"
+%>
+<%
+	CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
+	INode node = (INode)codeGenArgument.getArgument();
+	String cid = node.getUniqueName();
+	String nexusVersion = ElementParameterParser.getValue(node, "__NEXUS_VERSION__");
+	String nexusBaseUrl = ElementParameterParser.getValue(node, "__NEXUS_BASE_URL__");
+	String nexusUser = ElementParameterParser.getValue(node, "__NEXUS_USER__");
+	String nexusPassword = ElementParameterParser.getValue(node, "__NEXUS_PASSWORD__");
+	String nexusRepository = ElementParameterParser.getValue(node, "__NEXUS_REPOSITORY__");
+	String fileType = ElementParameterParser.getValue(node, "__FILE_TYPE__");
+	String file = ElementParameterParser.getValue(node, "__ARTIFACT_FILE__");
+	String groupId = ElementParameterParser.getValue(node, "__GROUP_ID__");
+%>
+<%	if ("DI_JOB".equals(fileType)) { %>
+	de.jlo.talendcomp.nexus.BatchjobDeployer <%=cid%> = null; 
+<%		if ("NEXUS_2".equals(nexusVersion)) { %>
+	<%=cid%> = new de.jlo.talendcomp.nexus.DeployDIJobNexus2();	
+<% 	} else { %>
+	<%=cid%> = new de.jlo.talendcomp.nexus.DeployDIJobNexus3();	
+<%		} %>
+<%	} else { %>
+	de.jlo.talendcomp.nexus.ServiceDeployer <%=cid%> = null;
+<%		if ("NEXUS_2".equals(nexusVersion)) { %>
+	<%=cid%> = new de.jlo.talendcomp.nexus.DeployServiceJobNexus2();	
+<% 	} else { %>
+	<%=cid%> = new de.jlo.talendcomp.nexus.DeployServiceJobNexus3();	
+<%		} %>
+<%	} %>
+	<%=cid%>.setNexusUrl(<%=nexusBaseUrl%>);
+	<%=cid%>.setNexusUser(<%=nexusUser%>);
+	<%=cid%>.setNexusPasswd(<%=nexusPassword%>);
+	<%=cid%>.setNexusRepository(<%=nexusRepository%>);
+	try {
+		<%=cid%>.connect();
+	} catch (Exception e) {
+		String message = "Connect to Nexus failed: " + e.getMessage();
+		throw new Exception(message, e);
+	}
+	<%=cid%>.setGroupId(<%=groupId%>);
+	{
+		String filePath = <%=file%>;
+		<%=cid%>.setJobFile(filePath);
+		globalMap.put("<%=cid%>_ARTIFACT_FILE", filePath);
+	}
+<%	if ("DI_JOB".equals(fileType)) { %>
+	try {
+		<%=cid%>.deployJobToNexus();
+	} catch (Exception e) {
+		String message = "Deploy job to Nexus failed: " + e.getMessage();
+		throw new Exception(message, e);
+	}
+<%	} else { %>
+	try {
+		<%=cid%>.deployBundleToNexus();
+	} catch (Exception e) {
+		String message = "Deploy bundle to Nexus failed: " + e.getMessage();
+		throw new Exception(message, e);
+	}
+	try {
+		<%=cid%>.deployFeatureToNexus();
+	} catch (Exception e) {
+		String message = "Deploy feature to Nexus failed: " + e.getMessage();
+		throw new Exception(message, e);
+	}
+<%	} %>
+	globalMap.put("<%=cid%>_ARTIFACT_ID", <%=cid%>.getArtifactId());
+	globalMap.put("<%=cid%>_ARTIFACT_VERSION", <%=cid%>.getVersion());	
