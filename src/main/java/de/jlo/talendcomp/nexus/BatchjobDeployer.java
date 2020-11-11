@@ -12,7 +12,7 @@ public abstract class BatchjobDeployer {
 	protected String nexusUser = "admin";
 	protected String nexusPasswd = "Talend123";
 	protected File jobFile = null;
-	protected boolean deleteLocalArtifactFile = true;
+	protected boolean deleteLocalArtifactFile = false;
 	protected static final String NEXUS_2 = "Nexus 2";
 	protected static final String NEXUS_3 = "Nexus 3";
 	
@@ -44,12 +44,18 @@ public abstract class BatchjobDeployer {
 		version = extractVersion(fileName, extension);
 		int pos = fileName.indexOf(version);
 		artifactId = fileName.substring(0, pos - 1);
-		version = version + ".0";
+		int p1 = version.indexOf('.');
+		if (p1 == -1) {
+			throw new IllegalStateException("Version invalid. Must contains at least one dot. version=" + version);
+		} else {
+			int p2 = version.indexOf('.', p1+1);
+			if (p2 == -1) {
+				version = version + ".0";
+			}
+		}
 	}
 	
-	public void checkIfArtifactAlreadyExists() {
-		
-	}
+	public abstract boolean checkIfArtifactAlreadyExists() throws Exception;
 	
 	public void deleteLocalFile() {
 		if (this.jobFile != null && this.jobFile.exists()) {

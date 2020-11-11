@@ -17,6 +17,8 @@
 	String fileType = ElementParameterParser.getValue(node, "__FILE_TYPE__");
 	String file = ElementParameterParser.getValue(node, "__ARTIFACT_FILE__");
 	String groupId = ElementParameterParser.getValue(node, "__GROUP_ID__");
+	boolean checkIfExists = "true".equals(ElementParameterParser.getValue(node, "__CHECK_IF_EXISTS__"));
+	boolean deleteFile = "true".equals(ElementParameterParser.getValue(node, "__DELETE_LOCAL_FILE__"));
 %>
 <%	if ("DI_JOB".equals(fileType)) { %>
 	de.jlo.talendcomp.nexus.BatchjobDeployer <%=cid%> = null; 
@@ -37,6 +39,7 @@
 	<%=cid%>.setNexusUser(<%=nexusUser%>);
 	<%=cid%>.setNexusPasswd(<%=nexusPassword%>);
 	<%=cid%>.setNexusRepository(<%=nexusRepository%>);
+	<%=cid%>.setDeleteLocalArtifactFile(<%=deleteFile%>);
 	try {
 		<%=cid%>.connect();
 	} catch (Exception e) {
@@ -49,6 +52,13 @@
 		<%=cid%>.setJobFile(filePath);
 		globalMap.put("<%=cid%>_ARTIFACT_FILE", filePath);
 	}
+	globalMap.put("<%=cid%>_ARTIFACT_ID", <%=cid%>.getArtifactId());
+	globalMap.put("<%=cid%>_ARTIFACT_VERSION", <%=cid%>.getVersion());	
+	globalMap.put("<%=cid%>_ARTIFACT_SUCESSFULLY_DEPLOYED", false);
+<%	if (checkIfExists) { %>
+	if (<%=cid%>.checkIfArtifactAlreadyExists() == false) {
+		globalMap.put("<%=cid%>_ARTIFACT_ALREADY_EXISTS", false);	
+<%	} %>
 <%	if ("DI_JOB".equals(fileType)) { %>
 	try {
 		<%=cid%>.deployJobToNexus();
@@ -70,5 +80,9 @@
 		throw new Exception(message, e);
 	}
 <%	} %>
-	globalMap.put("<%=cid%>_ARTIFACT_ID", <%=cid%>.getArtifactId());
-	globalMap.put("<%=cid%>_ARTIFACT_VERSION", <%=cid%>.getVersion());	
+	globalMap.put("<%=cid%>_ARTIFACT_SUCESSFULLY_DEPLOYED", true);
+<%	if (checkIfExists) { %>
+	} else {
+		globalMap.put("<%=cid%>_ARTIFACT_ALREADY_EXISTS", true);
+	}
+<%	} %>

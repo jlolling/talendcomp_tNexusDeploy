@@ -12,7 +12,7 @@ public abstract class ServiceDeployer {
 	protected String nexusUser = "admin";
 	protected String nexusPasswd = "Talend123";
 	protected File jobFile = null;
-	protected boolean deleteLocalArtifactFile = true;
+	protected boolean deleteLocalArtifactFile = false;
 
 	public abstract void deployBundleToNexus() throws Exception;
 
@@ -23,6 +23,8 @@ public abstract class ServiceDeployer {
 	public abstract void setNexusRepository(String repo);
 
 	public abstract String getNexusVersion();
+
+	public abstract boolean checkIfArtifactAlreadyExists() throws Exception;
 
 	public void setJobFile(String jobJarFilePath) {
 		if (jobJarFilePath == null || jobJarFilePath.trim().isEmpty()) {
@@ -44,7 +46,15 @@ public abstract class ServiceDeployer {
 		version = extractVersion(fileName, extension);
 		int pos = fileName.indexOf(version);
 		artifactId = fileName.substring(0, pos - 1);
-		version = version + ".0";
+		int p1 = version.indexOf('.');
+		if (p1 == -1) {
+			throw new IllegalStateException("Version invalid. Must contains at least one dot. version=" + version);
+		} else {
+			int p2 = version.indexOf('.', p1+1);
+			if (p2 == -1) {
+				version = version + ".0";
+			}
+		}
 	}
 	
 	public void checkJobFile() throws Exception {
@@ -53,10 +63,6 @@ public abstract class ServiceDeployer {
 		} else if (jobFile.exists() == false) {
 			throw new Exception("OSGi bundle file: " + jobFile.getAbsolutePath() + " does not exist.");
 		}
-	}
-
-	public void checkIfArtifactAlreadyExists() {
-		
 	}
 	
 	public void deleteLocalFile() {

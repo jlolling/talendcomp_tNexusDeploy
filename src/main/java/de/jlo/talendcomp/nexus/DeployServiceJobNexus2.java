@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.HttpMultipartMode;
@@ -127,8 +128,12 @@ public class DeployServiceJobNexus2 extends ServiceDeployer {
 		builder.addBinaryBody("file", inputStream, ContentType.DEFAULT_BINARY, jobFile.getName());
 		HttpEntity entity = builder.build();
 		post.setEntity(entity);
-		String response = httpClient.execute(post, false);
-		System.out.println(response);
+		String response = null;
+		try {
+			response = httpClient.execute(post, false);			
+		} catch (Exception e) {
+			throw new Exception("Deploy bundle: \n" + pom + "\nfailed. Response: " + response, e);
+		}
 		if (deleteLocalArtifactFile && (httpClient.getStatusCode() >= 200 || httpClient.getStatusCode() <= 204)) {
 			deleteLocalFile();
 		}
@@ -148,8 +153,40 @@ public class DeployServiceJobNexus2 extends ServiceDeployer {
 		builder.addBinaryBody("file", feature.getBytes("UTF-8"), ContentType.DEFAULT_BINARY, "feature.xml");
 		HttpEntity entity = builder.build();
 		post.setEntity(entity);
-		String response = httpClient.execute(post, false);
-		System.out.println(response);
+		String response = null;
+		try {
+			response = httpClient.execute(post, false);			
+		} catch (Exception e) {
+			throw new Exception("Deploy feature: \n" + feature + "\nfailed. Response: " + response, e);
+		}
+	}
+
+	@Override
+	public boolean checkIfArtifactAlreadyExists() throws Exception {
+		if (artifactId == null) {
+			throw new IllegalStateException("artifactId is null. You have to call setJobFile before");
+		}
+		if (version == null) {
+			throw new IllegalStateException("version is null. You have to call setJobFile before");
+		}
+		if (groupId == null) {
+			throw new IllegalStateException("groupId is null but it is mandatory.");
+		}
+		String checkPomUrl = nexusUrl + "/service/local/repositories/" + nexusRepository + "/content/" + groupId.replace('.', '/') + "/" + artifactId + "/" + version + "/" + artifactId + "-" + version + ".pom";
+		HttpGet get = new HttpGet(checkPomUrl);
+		try {
+			httpClient.execute(get, false);
+			if (httpClient.getStatusCode() == 200) {
+				return true;
+			}
+		} catch (Exception e) {
+			if (httpClient.getStatusCode() == 404) {
+				return false;
+			} else {
+				throw new Exception("Check exist for groupId=" + groupId + ", artifactId=" + artifactId + ", version=" + version + " failed. uri: " + get.getURI(), e);
+			}
+		}
+		return false;
 	}
 
 }

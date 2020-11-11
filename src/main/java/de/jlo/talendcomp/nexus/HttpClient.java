@@ -10,7 +10,7 @@ import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
@@ -51,7 +51,7 @@ public class HttpClient {
 		return false;
 	}
 	
-	public String execute(HttpPost request, boolean expectResponse) throws Exception {
+	public String execute(HttpRequestBase request, boolean expectResponse) throws Exception {
 		String responseContent = "";
 		currentAttempt = 0;
 		for (currentAttempt = 0; currentAttempt <= maxRetriesInCaseOfErrors; currentAttempt++) {
@@ -82,7 +82,7 @@ public class HttpClient {
             		// ignore
             	}
             	if (statusCode > 300) {
-            		throw new Exception("Got status-code: " + statusCode + ", reason-phrase: " + statusMessage + ", response: " + responseContent);
+            		throw new Exception("Got status-code: " + statusCode + ", reason-phrase: " + statusMessage);
             	}
             	break;
             } catch (Throwable e) {
@@ -90,7 +90,7 @@ public class HttpClient {
                 	// this can happen, we try it again
                 	Thread.sleep(waitMillisAfterError);
             	} else {
-                	throw new Exception("POST request: " + request.getURI() + " failed. No retry left, max: " + maxRetriesInCaseOfErrors, e);
+                	throw new Exception("Request: " + request.getMethod() + " " + request.getURI() + " failed with statusCode=" + statusCode + ", message=" + statusMessage + ". No retry left, max: " + maxRetriesInCaseOfErrors, e);
             	}
             } finally {
             	if (httpResponse != null) {
