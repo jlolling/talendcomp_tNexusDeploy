@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>de.jlo.talendcomp</groupId>
   <artifactId>nexus</artifactId>
-  <version>1.0</version>
+  <version>1.1</version>
   <name>Nexus Deployment Component</name>
   	<dependencies>
 		<dependency>
@@ -49,7 +49,7 @@
 				<configuration>
 					<copyFromSourceBaseDir>${project.basedir}/talend_component</copyFromSourceBaseDir>
 					<componentBaseDir>${project.basedir}/talend_component</componentBaseDir>
-					<studioUserComponentFolder>/Data/Talend/Studio/talend_user_components</studioUserComponentFolder>
+					<studioUserComponentFolder>/Users/jan/development/talend_user_components</studioUserComponentFolder>
 				</configuration>
 				<executions>
 					<execution>

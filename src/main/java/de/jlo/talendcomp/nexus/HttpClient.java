@@ -124,12 +124,16 @@ public class HttpClient {
                 AuthCache authCache = new BasicAuthCache();
                 HttpHost httpHost = new HttpHost(url.getHost(), url.getPort());
                 authCache.put(httpHost, new BasicScheme());
+                UnsafeSSLHelper unsafeSSLHelper = new UnsafeSSLHelper();
                 context = HttpClientContext.create();
                 context.setCredentialsProvider(credsProvider);
                 context.setAuthCache(authCache);
                 CloseableHttpClient client = HttpClients.custom()
                         .setDefaultCredentialsProvider(credsProvider)
                         .setDefaultRequestConfig(requestConfig)
+                        .setSSLContext(unsafeSSLHelper.createUnsecureSSLContext())
+                        .setSSLHostnameVerifier(unsafeSSLHelper.getPassiveHostnameVerifier())
+//                        .setHostnameVerifier(unsafeSSLHelper.getPassiveX509HostnameVerifier())
                         .build();
             	closableHttpClient = client;
                 return client;
