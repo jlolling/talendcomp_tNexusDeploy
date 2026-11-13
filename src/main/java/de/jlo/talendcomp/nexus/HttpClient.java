@@ -10,7 +10,7 @@ import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
@@ -28,7 +28,6 @@ public class HttpClient {
 	private long waitMillisAfterError = 1000l;
 	private CloseableHttpClient closableHttpClient = null;
 	private HttpClientContext context = null;
-	private boolean useUnsafeCertManager = false;
 	
 	public HttpClient(String urlStr, String user, String password, int timeout) throws Exception {
 		closableHttpClient = createCloseableClient(urlStr, user, password, timeout);
@@ -52,7 +51,7 @@ public class HttpClient {
 		return false;
 	}
 	
-	public String execute(HttpPost request, boolean expectResponse) throws Exception {
+	public String execute(HttpRequestBase request, boolean expectResponse) throws Exception {
 		String responseContent = "";
 		currentAttempt = 0;
 		for (currentAttempt = 0; currentAttempt <= maxRetriesInCaseOfErrors; currentAttempt++) {
@@ -90,10 +89,10 @@ public class HttpClient {
             } catch (Throwable e) {
             	if (currentAttempt < maxRetriesInCaseOfErrors && (statusCode != 403 && statusCode != 404 && statusCode != 405)) {
                 	// this can happen, we try it again
-                	System.err.println("POST request: " + request.getURI() + " failed (" + (currentAttempt + 1) + ". attempt, " + (maxRetriesInCaseOfErrors - currentAttempt) + " retries left). \n Waiting " + waitMillisAfterError + "ms and retry request.");
+                	System.err.println("Request: " + request.getMethod() + " " + request.getURI() + " failed (" + (currentAttempt + 1) + ". attempt, " + (maxRetriesInCaseOfErrors - currentAttempt) + " retries left). \n Waiting " + waitMillisAfterError + "ms and retry request.");
                 	Thread.sleep(waitMillisAfterError);
             	} else {
-                	throw new Exception("POST request: " + request.getURI() + " failed. No retry left, max: " + maxRetriesInCaseOfErrors, e);
+                	throw new Exception("Request: " + request.getMethod() + " " + request.getURI() + " failed. No retry left, max: " + maxRetriesInCaseOfErrors, e);
             	}
             } finally {
             	if (httpResponse != null) {
@@ -130,23 +129,15 @@ public class HttpClient {
                 context = HttpClientContext.create();
                 context.setCredentialsProvider(credsProvider);
                 context.setAuthCache(authCache);
-                if (useUnsafeCertManager) {
-                    UnsafeSSLHelper unsafeSSLHelper = new UnsafeSSLHelper();
-                    CloseableHttpClient client = HttpClients.custom()
-                            .setDefaultCredentialsProvider(credsProvider)
-                            .setDefaultRequestConfig(requestConfig)
-                            .setSSLContext(unsafeSSLHelper.createUnsecureSSLContext())
-                            .setSSLHostnameVerifier(unsafeSSLHelper.getPassiveHostnameVerifier())
-                            .build();
-                	closableHttpClient = client;
-                } else {
-                    CloseableHttpClient client = HttpClients.custom()
-                            .setDefaultCredentialsProvider(credsProvider)
-                            .setDefaultRequestConfig(requestConfig)
-                            .build();
-                	closableHttpClient = client;
-                }
-                return closableHttpClient;
+                UnsafeSSLHelper unsafeSSLHelper = new UnsafeSSLHelper();
+                CloseableHttpClient client = HttpClients.custom()
+                        .setDefaultCredentialsProvider(credsProvider)
+                        .setDefaultRequestConfig(requestConfig)
+                        .setSSLContext(unsafeSSLHelper.createUnsecureSSLContext())
+                        .setSSLHostnameVerifier(unsafeSSLHelper.getPassiveHostnameVerifier())
+                        .build();
+                closableHttpClient = client;
+                return client;
             } else {
                 RequestConfig requestConfig = RequestConfig.custom()
                         .setSocketTimeout(timeout)
